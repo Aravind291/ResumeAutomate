@@ -69,7 +69,7 @@ def process_context_for_richtext(context_data: dict) -> dict:
     processed_context = {}
     for key, value in context_data.items():
         # --- Handle target fields: RESPONSIBILITES (lists) ---
-        if key in ("SUMMARY","RESPONSIBILITES_AL", "RESPONSIBILITES_FD", "RESPONSIBILITES_SM") and isinstance(value, list):
+        if key in ("SUMMARY","RESPONSIBILITES_FD", "RESPONSIBILITES_SM", "RESPONSIBILITES_UHC", "RESPONSIBILITES_VZ") and isinstance(value, list):
             processed_list = []
             for item in value:
                 if isinstance(item, str):
@@ -77,15 +77,44 @@ def process_context_for_richtext(context_data: dict) -> dict:
                     processed_list.append(attempt_to_parse_markdown(item))
                 else:
                     processed_list.append(item) # for nulls, etc.
-            processed_context[key] = processed_list
-        
-        
+            processed_context[key] = processed_list       
+        elif key in ("ABOUT_ME") and isinstance(value, str):
+            processed_context[key] = attempt_to_parse_markdown(value)
         # --- Keep all other fields as-is ---
         else:
             processed_context[key] = value
             
     return processed_context
+
+
+# def process_context_for_richtext(context_data: dict) -> dict:
+#     processed_context = {}
+
+#     for key, value in context_data.items():
+
+#         # Markdown fields with lists
+#         if key in ("SUMMARY", "RESPONSIBILITES_FD", "RESPONSIBILITES_SM", 
+#                    "RESPONSIBILITES_UHC", "RESPONSIBILITES_VZ") and isinstance(value, list):
+#             processed_list = []
+#             for item in value:
+#                 processed_list.append(attempt_to_parse_markdown(item))
+#             processed_context[key] = processed_list
+
+#         # ABOUT_ME (single string paragraph)
+#         elif key == "ABOUT_ME" and isinstance(value, str):
+#             processed_context[key] = attempt_to_parse_markdown(value)
+
+#         # Everything else unchanged
+#         else:
+#             processed_context[key] = value
+
+#     return processed_context
+
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 @app.post("/generate-docx/{template_path}", response_model=GenerateResponse)
 def generate_docx(payload: GenerateRequest, template_path: str):
@@ -101,7 +130,7 @@ def generate_docx(payload: GenerateRequest, template_path: str):
 
         # Render with the *new* context
         doc.render(final_context)
-        doc.save("Ganesh_Gouru_Resume.docx")
+        doc.save("Sai_Mohan_Resume.docx")
 
         buffer = BytesIO()
         doc.save(buffer)
@@ -110,7 +139,7 @@ def generate_docx(payload: GenerateRequest, template_path: str):
         docx_b64 = base64.b64encode(buffer.read()).decode("utf-8")
 
         return GenerateResponse(
-            filename="Ganesh_Gouru_Resume.docx",
+            filename="Sai_Mohan_Resume.docx",
             docx_b64=docx_b64
         )
     
